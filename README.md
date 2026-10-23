@@ -1,55 +1,74 @@
-# Auto Tweet Scheduler
+# TweetBot
 
-This Python program automates the process of posting tweets at regular intervals using the Tweepy library and the Twitter API.
+TweetBot is a small Python command-line scheduler that publishes prepared posts to X at a configured interval. It uses Tweepy to authenticate with the X API and the Schedule library to run the posting task.
 
-## Setup
+## Features
 
-1. **Install Dependencies**: Make sure you have Python installed on your system. You also need to install the Tweepy library. You can install it using pip:
+- Reads post text from `tweets.txt`, one post per line.
+- Publishes the next eligible post at the configured interval.
+- Logs successful posts with a local timestamp.
+- Avoids repeating the same post during the current process session.
 
-    ```
-    pip install tweepy
-    ```
+## Requirements
 
-    If schedule is not installed, install it using pip:
+- Python 3.9 or later
+- An X Developer account and API access that permits creating posts
+- API credentials for the account that will publish
+- The Python packages `tweepy` and `schedule`
 
-   ```
-   pip install schedule
-   ```
+Install the dependencies:
 
-3. **Twitter API Credentials**: Obtain your Twitter API credentials (API key, API secret key, Access token, and Access token secret) from the Twitter Developer Portal. You'll need these credentials to authenticate with the Twitter API.
+```bash
+python -m pip install tweepy schedule
+```
 
-4. **Configuration**: Create a `config.py` file in the same directory as the program and define your Twitter API credentials and other configurations:
+## Configuration
 
-    ```python
-    BEARER_TOKEN = "YOUR_BEARER_TOKEN"
-    API_KEY = "YOUR_API_KEY"
-    API_SECRET = "YOUR_API_SECRET"
-    ACCESS_TOKEN = "YOUR_ACCESS_TOKEN"
-    ACCESS_TOKEN_SECRET = "YOUR_ACCESS_TOKEN_SECRET"
-    INTERVAL = 60  # Interval in minutes
-    ```
+Open `config.py` and replace the placeholder values with your own credentials. Keep this file private and never commit real tokens or keys.
 
-5. **Tweet Text**: Prepare your tweet messages and save them in a file named `tweets.txt`. Each line in this file represents a tweet message.
+```python
+BEARER_TOKEN = "YOUR_BEARER_TOKEN"
+API_KEY = "YOUR_API_KEY"
+API_SECRET = "YOUR_API_SECRET"
+ACCESS_TOKEN = "YOUR_ACCESS_TOKEN"
+ACCESS_TOKEN_SECRET = "YOUR_ACCESS_TOKEN_SECRET"
+INTERVAL = 60  # Minutes between scheduled posts
+```
 
-## Usage
+Set `INTERVAL` to the number of minutes to wait between scheduled posts.
 
-To start the auto tweet scheduler:
+## Prepare posts
 
-1. Run the program by executing the following command in your terminal:
+Add one post per line in `tweets.txt`. Keep each post within the current character and content limits enforced by X. The scheduler reads this file when it runs the posting task.
 
-    ```
-    python auto_tweet.py
-    ```
+## Run
 
-2. The program will start posting tweets at regular intervals specified in the `INTERVAL` variable in the `config.py` file.
+From the repository directory, start the scheduler with:
 
-3. The program will continue running indefinitely, posting tweets according to the schedule.
+```bash
+python farm.py
+```
 
-## Notes
+The scheduler runs until the process is stopped. It waits for the configured interval before the first scheduled post, then checks for pending work once per second.
 
-- Make sure your system's date and time settings are accurate for proper scheduling.
-- Ensure that your Twitter API credentials are kept secure and not shared publicly.
-- You can modify the `INTERVAL` variable in the `config.py` file to change the posting frequency.
-- Remember to include meaningful and engaging tweet messages in the `tweets.txt` file to keep your audience interested.
-- Because of Twitter's limitations to posting content (you cannot repeat the same tweet in any 24 hours), a set called `posted_tweets` is created and the bot will stop posting when you've run out of tweets.
+## Important behavior and limitations
 
+- The in-memory duplicate set resets when the program restarts. It is not a persistent posting history.
+- The current implementation does not remove posts from `tweets.txt`; it filters posts already sent during the current session.
+- If there are no eligible posts, the scheduler prints a message and waits for the next interval.
+- API access, rate limits, and account restrictions are controlled by X. Review the applicable platform rules before automating posts.
+- For long-running use, run the process in a managed environment and monitor its logs.
+
+## Project files
+
+| File | Purpose |
+| --- | --- |
+| `farm.py` | Initializes Tweepy and runs the scheduled posting loop |
+| `config.py` | API credentials and posting interval |
+| `tweets.txt` | Queue of post text, one post per line |
+| `verify.py` | Supporting credential or API verification utility |
+| `start.sh` | Shell entry point |
+
+## License
+
+See [LICENSE](LICENSE) for license terms.
